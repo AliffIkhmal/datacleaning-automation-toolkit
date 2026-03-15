@@ -13,6 +13,30 @@ Storage strategy: Use temporary secure storage for uploads and auto-delete proce
 Monitoring: Add health checks, error tracking, and usage metrics (failed parses, missing columns, parse-rate by date format).
 Backup/recovery: Back up configs and rule mappings; prepare rollback plan for bad releases.
 
+Model/Data Quality Improvements (Imputation + Schema Matching)
+
+1) Improve imputation strategy to reduce signal loss
+- Add missingness flags per key field (e.g., Age_missing, Salary_missing) before filling values.
+- Use segmented imputation (by Department/Job_Title/Gender group) instead of global median/mode.
+- For numeric fields, prefer robust methods (KNN/MICE/regression) where data volume supports it; keep median as fallback.
+- For categorical fields, consider probabilistic imputation or "Unknown" category when confidence is low.
+- Track before/after distribution checks (variance, quantiles, class proportions) and alert if drift exceeds threshold.
+- Keep original raw columns (or a snapshot) for traceability in downstream modeling.
+
+2) Make schema resolution safer (reduce ambiguous alias mapping)
+- Replace free-form alias matching with a versioned data dictionary (approved column names + aliases).
+- Add confidence scoring for column mapping; auto-map only when confidence is high, otherwise require manual confirmation.
+- Detect collisions (one source column matching multiple canonical fields) and block pipeline until resolved.
+- Validate expected data type/range per mapped field (e.g., Age numeric 15-80, Salary positive) before accepting mapping.
+- Log mapping decisions and expose them in the cleaning report for auditability.
+- Add unit tests with intentionally ambiguous headers to prevent regression.
+
+3) Governance and controls
+- Add configurable policy in strict mode:
+  - Imputation policy (global/segmented/model-based, allowed columns).
+  - Mapping policy (minimum confidence threshold, manual review trigger).
+- Publish data-quality KPIs in report: imputation rate by column, unresolved mappings count, and downstream drift metrics.
+
 Production-Ready Next Steps
 
 Add user login/access control.
