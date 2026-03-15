@@ -47,6 +47,38 @@ class CleanerRulesTests(unittest.TestCase):
         self.assertTrue((cleaned_df["Age"] >= 10).all())
         self.assertEqual(int(cleaned_df["Performance Rating"].max()), 5)
 
+    def test_accepts_runtime_custom_column_aliases(self):
+        df = pd.DataFrame(
+            {
+                "Employee Full Name": ["Siti Aminah", "Muhammad Firdaus", "Aina Rahman"],
+                "Sex": [None, "Male", "Female"],
+                "Monthly Income": [15000, 17500, 16800],
+                "Employee Age": [26, 31, 29],
+                "Perf Score": [4, 5, 4],
+                "OT": [2, 3, 1],
+            }
+        )
+
+        aliases = {
+            "Name": {"Employee Full Name"},
+            "Gender": {"Sex"},
+            "Salary": {"Monthly Income"},
+            "Age": {"Employee Age"},
+            "Performance_Rating": {"Perf Score"},
+            "Overtime_Hours": {"OT"},
+        }
+
+        cleaned_df, stats, outliers_df = clean_hr_data(
+            df,
+            strict_mode=True,
+            column_aliases=aliases,
+        )
+
+        self.assertEqual(cleaned_df.loc[0, "Sex"], "Female")
+        self.assertEqual(cleaned_df.loc[1, "Sex"], "Male")
+        self.assertEqual(stats["total_rows"], 3)
+        self.assertTrue(outliers_df.empty)
+
 
 if __name__ == "__main__":
     unittest.main()

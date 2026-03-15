@@ -5,6 +5,7 @@ from typing import Dict
 import pandas as pd
 
 
+# Mapping from internal stat keys to user-facing report labels.
 REPORT_LABELS = {
     "total_rows": "Total Rows",
     "duplicates_removed": "Duplicates Removed",
@@ -18,6 +19,7 @@ REPORT_LABELS = {
 }
 
 
+# Build a simple tabular summary from collected cleaning stats.
 def generate_cleaning_report(stats: Dict[str, int]) -> pd.DataFrame:
     rows = []
     for key, label in REPORT_LABELS.items():

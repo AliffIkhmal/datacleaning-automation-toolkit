@@ -7,10 +7,12 @@ from hr_cleaning.cleaner import clean_hr_data
 from hr_cleaning.report import generate_cleaning_report
 
 
+# Page setup and high-level app description.
 st.set_page_config(page_title="Automated HR Data Cleaning", page_icon="🧹", layout="wide")
 st.title("Automated HR Data Cleaning & Preprocessing System")
 st.caption("Upload HR CSV data, run preprocessing, review report, and download cleaned output.")
 
+# File input and execution options.
 uploaded_file = st.file_uploader("Upload HR dataset (CSV)", type=["csv"])
 strict_mode = st.checkbox(
     "Strict HR-only mode (require all core columns and <= 40% missing in each core column)",
@@ -18,6 +20,7 @@ strict_mode = st.checkbox(
 )
 
 if uploaded_file is not None:
+    # Read uploaded CSV and stop early on parse errors.
     try:
         raw_df = pd.read_csv(uploaded_file)
     except Exception as error:
@@ -36,6 +39,7 @@ if uploaded_file is not None:
     )
     st.dataframe(dtype_df, use_container_width=True)
 
+    # Trigger full cleaning pipeline and render outputs.
     if st.button("Run Cleaning", type="primary"):
         try:
             cleaned_df, stats, outliers_df = clean_hr_data(raw_df, strict_mode=strict_mode)
@@ -66,4 +70,5 @@ if uploaded_file is not None:
             mime="text/csv",
         )
 else:
+    # Empty state before a file is uploaded.
     st.info("Please upload a CSV file to begin.")

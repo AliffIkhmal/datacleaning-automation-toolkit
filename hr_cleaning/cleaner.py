@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
 import re
 from typing import Any, Dict, Optional, Tuple
@@ -8,12 +9,14 @@ import numpy as np
 import pandas as pd
 
 
+# Core cleaning configuration.
 NEGATIVE_CHECK_COLUMNS = ["Age", "Salary", "Overtime_Hours"]
 DATE_COLUMNS = ["Hire_Date"]
 MISSING_PLACEHOLDERS = {"", "-", "--", "na", "n/a", "nan", "null", "none"}
 MARKETING_EXECUTIVE_TITLE = "Marketing Executive"
 HR_EXECUTIVE_TITLE = "Human Resources Executive"
 
+# Name-pattern dictionaries used for gender inference.
 MALAY_FEMALE_PREFIXES = {
     "siti",
     "nur",
@@ -47,8 +50,10 @@ INDIAN_FEMALE_INDICATORS = {"priya", "divya", "kavitha", "anjali", "lakshmi", "s
 INDIAN_MALE_INDICATORS = {"raj", "kumar", "arjun", "vijay", "ravi", "krishna", "daniel"}
 
 
-CANONICAL_COLUMN_ALIASES = {
+# Built-in alias dictionary for canonical HR fields.
+DEFAULT_COLUMN_ALIASES = {
     "Name": {"name", "employee name", "employee_name", "full name", "full_name"},
+    "Gender": {"gender", "sex", "jenis kelamin"},
     "Age": {"age", "employee age", "umur"},
     "Performance_Rating": {
         "performance_rating",
@@ -77,6 +82,10 @@ REQUIRED_HR_COLUMNS = [
 ]
 
 
+# Public alias map type used by callers.
+ColumnAliasMap = Mapping[str, Iterable[str]]
+
+
 @dataclass
 class CleaningStats:
     total_rows: int
@@ -93,6 +102,7 @@ class CleaningStats:
         return asdict(self)
 
 
+# Alias and schema resolution helpers.
 def _normalize_text(value: Any) -> str:
     if pd.isna(value):
         return ""
@@ -105,12 +115,38 @@ def _normalize_column_key(name: str) -> str:
     return normalized.strip("_")
 
 
-def _resolve_column_name(df: pd.DataFrame, canonical_name: str) -> str | None:
+def _merge_column_aliases(custom_aliases: Optional[ColumnAliasMap] = None) -> Dict[str, set[str]]:
+    merged_aliases = {
+        canonical_name: set(aliases)
+        for canonical_name, aliases in DEFAULT_COLUMN_ALIASES.items()
+    }
+
+    if not custom_aliases:
+        return merged_aliases
+
+    for canonical_name, aliases in custom_aliases.items():
+        if canonical_name not in merged_aliases:
+            merged_aliases[canonical_name] = set()
+
+        for alias in aliases:
+            alias_text = str(alias).strip()
+            if alias_text:
+                merged_aliases[canonical_name].add(alias_text)
+
+    return merged_aliases
+
+
+def _resolve_column_name(
+    df: pd.DataFrame,
+    canonical_name: str,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> str | None:
     if canonical_name in df.columns:
         return canonical_name
 
+    active_aliases = _merge_column_aliases(column_aliases)
     alias_pool = set()
-    for alias in CANONICAL_COLUMN_ALIASES.get(canonical_name, set()):
+    for alias in active_aliases.get(canonical_name, set()):
         alias_pool.add(_normalize_column_key(alias))
     alias_pool.add(_normalize_column_key(canonical_name))
 
@@ -121,15 +157,22 @@ def _resolve_column_name(df: pd.DataFrame, canonical_name: str) -> str | None:
     return None
 
 
-def _get_required_column_map(df: pd.DataFrame) -> Dict[str, str | None]:
+def _get_required_column_map(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Dict[str, str | None]:
     return {
-        canonical: _resolve_column_name(df, canonical)
+        canonical: _resolve_column_name(df, canonical, column_aliases=column_aliases)
         for canonical in REQUIRED_HR_COLUMNS
     }
 
 
-def validate_hr_schema(df: pd.DataFrame, strict_mode: bool = False) -> Dict[str, str | None]:
-    required_map = _get_required_column_map(df)
+def validate_hr_schema(
+    df: pd.DataFrame,
+    strict_mode: bool = False,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Dict[str, str | None]:
+    required_map = _get_required_column_map(df, column_aliases=column_aliases)
     matched = [name for name, column in required_map.items() if column is not None]
     missing = [name for name, column in required_map.items() if column is None]
 
@@ -163,6 +206,7 @@ def validate_hr_schema(df: pd.DataFrame, strict_mode: bool = False) -> Dict[str,
     return required_map
 
 
+# Value standardization helpers.
 def _normalize_hr_label(value: str) -> str:
     """Fix 'Hr' and 'Human Resource' (without trailing s) after title-casing."""
     value = re.sub(r"\bHr\b", "Human Resources", value)
@@ -249,11 +293,14 @@ def infer_gender_from_malaysian_name(name: Any) -> Optional[str]:
     return None
 
 
-def auto_fill_missing_gender_by_name(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+def auto_fill_missing_gender_by_name(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Tuple[pd.DataFrame, int]:
     """Fill missing gender values using Malaysian name pattern rules."""
     adjusted_df = df.copy()
     inferred_count = 0
-    name_column = _resolve_column_name(adjusted_df, "Name")
+    name_column = _resolve_column_name(adjusted_df, "Name", column_aliases=column_aliases)
     if not name_column:
         return adjusted_df, inferred_count
 
@@ -325,6 +372,7 @@ def _canonicalize_job_title(value: Any) -> Any:
     return collapsed
 
 
+# Individual cleaning step functions.
 def normalize_missing_placeholders(df: pd.DataFrame) -> pd.DataFrame:
     normalized_df = df.copy()
 
@@ -354,11 +402,17 @@ def standardize_categorical_values(df: pd.DataFrame) -> pd.DataFrame:
     return standardized_df
 
 
-def fill_missing_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+def fill_missing_values(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Tuple[pd.DataFrame, int, int]:
     filled_df = df.copy()
     missing_before = int(filled_df.isna().sum().sum())
 
-    filled_df, gender_inferred_count = auto_fill_missing_gender_by_name(filled_df)
+    filled_df, gender_inferred_count = auto_fill_missing_gender_by_name(
+        filled_df,
+        column_aliases=column_aliases,
+    )
 
     numeric_columns = filled_df.select_dtypes(include=[np.number]).columns
     for column in numeric_columns:
@@ -381,12 +435,19 @@ def fill_missing_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
     return filled_df, fixed_count, gender_inferred_count
 
 
-def correct_negative_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+def correct_negative_values(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Tuple[pd.DataFrame, int]:
     corrected_df = df.copy()
     corrected_count = 0
 
     for canonical_column in NEGATIVE_CHECK_COLUMNS:
-        resolved_column = _resolve_column_name(corrected_df, canonical_column)
+        resolved_column = _resolve_column_name(
+            corrected_df,
+            canonical_column,
+            column_aliases=column_aliases,
+        )
         if resolved_column and pd.api.types.is_numeric_dtype(corrected_df[resolved_column]):
             mask = corrected_df[resolved_column] < 0
             corrected_count += int(mask.sum())
@@ -395,9 +456,12 @@ def correct_negative_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
     return corrected_df, corrected_count
 
 
-def replace_single_digit_ages_with_median(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+def replace_single_digit_ages_with_median(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Tuple[pd.DataFrame, int]:
     adjusted_df = df.copy()
-    age_column = _resolve_column_name(adjusted_df, "Age")
+    age_column = _resolve_column_name(adjusted_df, "Age", column_aliases=column_aliases)
     if not age_column:
         return adjusted_df, 0
 
@@ -419,9 +483,16 @@ def replace_single_digit_ages_with_median(df: pd.DataFrame) -> Tuple[pd.DataFram
     return adjusted_df, replaced_count
 
 
-def cap_performance_rating(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+def cap_performance_rating(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> Tuple[pd.DataFrame, int]:
     capped_df = df.copy()
-    rating_column = _resolve_column_name(capped_df, "Performance_Rating")
+    rating_column = _resolve_column_name(
+        capped_df,
+        "Performance_Rating",
+        column_aliases=column_aliases,
+    )
     if not rating_column:
         return capped_df, 0
 
@@ -431,11 +502,18 @@ def cap_performance_rating(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
     return capped_df, capped_count
 
 
-def standardize_dates(df: pd.DataFrame) -> pd.DataFrame:
+def standardize_dates(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> pd.DataFrame:
     standardized_df = df.copy()
 
     for canonical_column in DATE_COLUMNS:
-        resolved_column = _resolve_column_name(standardized_df, canonical_column)
+        resolved_column = _resolve_column_name(
+            standardized_df,
+            canonical_column,
+            column_aliases=column_aliases,
+        )
         if resolved_column:
             series = standardized_df[resolved_column]
             parsed = pd.to_datetime(series, errors="coerce", format="mixed", dayfirst=False)
@@ -457,10 +535,11 @@ def standardize_dates(df: pd.DataFrame) -> pd.DataFrame:
 
 def detect_and_cap_salary_outliers_iqr(
     df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
 ) -> Tuple[pd.DataFrame, pd.Series, int]:
     """Replace only 6-figure salaries with median salary (integer, no decimals)."""
     capped_df = df.copy()
-    salary_column = _resolve_column_name(capped_df, "Salary")
+    salary_column = _resolve_column_name(capped_df, "Salary", column_aliases=column_aliases)
     if not salary_column or not pd.api.types.is_numeric_dtype(capped_df[salary_column]):
         return capped_df, pd.Series(False, index=df.index), 0
 
@@ -485,12 +564,19 @@ def detect_and_cap_salary_outliers_iqr(
     return capped_df, outlier_mask, int(outlier_mask.sum())
 
 
-def enforce_integer_like_columns(df: pd.DataFrame) -> pd.DataFrame:
+def enforce_integer_like_columns(
+    df: pd.DataFrame,
+    column_aliases: Optional[ColumnAliasMap] = None,
+) -> pd.DataFrame:
     enforced_df = df.copy()
     integer_columns = ["Age", "Performance_Rating", "Overtime_Hours"]
 
     for canonical_column in integer_columns:
-        resolved_column = _resolve_column_name(enforced_df, canonical_column)
+        resolved_column = _resolve_column_name(
+            enforced_df,
+            canonical_column,
+            column_aliases=column_aliases,
+        )
         if not resolved_column:
             continue
 
@@ -500,33 +586,54 @@ def enforce_integer_like_columns(df: pd.DataFrame) -> pd.DataFrame:
     return enforced_df
 
 
+# Main orchestrator for the full HR cleaning pipeline.
 def clean_hr_data(
     df: pd.DataFrame,
     strict_mode: bool = False,
+    column_aliases: Optional[ColumnAliasMap] = None,
 ) -> Tuple[pd.DataFrame, Dict[str, int], pd.DataFrame]:
     if df.empty:
         raise ValueError("Uploaded dataset is empty.")
 
     stats = CleaningStats(total_rows=len(df))
     working_df = normalize_missing_placeholders(df.copy())
-    validate_hr_schema(working_df, strict_mode=strict_mode)
+    validate_hr_schema(
+        working_df,
+        strict_mode=strict_mode,
+        column_aliases=column_aliases,
+    )
 
     before = len(working_df)
     working_df = working_df.drop_duplicates().reset_index(drop=True)
     stats.duplicates_removed = before - len(working_df)
 
     working_df = standardize_categorical_values(working_df)
-    working_df = standardize_dates(working_df)
-    working_df, stats.missing_values_fixed, stats.gender_inferred_by_name = fill_missing_values(working_df)
-    working_df, stats.negative_values_corrected = correct_negative_values(working_df)
-    working_df, stats.single_digit_ages_replaced = replace_single_digit_ages_with_median(working_df)
-    working_df, stats.performance_rating_capped = cap_performance_rating(working_df)
+    working_df = standardize_dates(working_df, column_aliases=column_aliases)
+    working_df, stats.missing_values_fixed, stats.gender_inferred_by_name = fill_missing_values(
+        working_df,
+        column_aliases=column_aliases,
+    )
+    working_df, stats.negative_values_corrected = correct_negative_values(
+        working_df,
+        column_aliases=column_aliases,
+    )
+    working_df, stats.single_digit_ages_replaced = replace_single_digit_ages_with_median(
+        working_df,
+        column_aliases=column_aliases,
+    )
+    working_df, stats.performance_rating_capped = cap_performance_rating(
+        working_df,
+        column_aliases=column_aliases,
+    )
 
     # Keep an original snapshot for reporting while applying fixes to cleaned output.
     pre_outlier_fix_df = working_df.copy()
-    working_df, outlier_mask, stats.outliers_detected = detect_and_cap_salary_outliers_iqr(working_df)
+    working_df, outlier_mask, stats.outliers_detected = detect_and_cap_salary_outliers_iqr(
+        working_df,
+        column_aliases=column_aliases,
+    )
     stats.salary_outliers_handled = stats.outliers_detected
-    working_df = enforce_integer_like_columns(working_df)
+    working_df = enforce_integer_like_columns(working_df, column_aliases=column_aliases)
     outliers_df = pre_outlier_fix_df.loc[outlier_mask].copy()
 
     return working_df, stats.to_dict(), outliers_df
