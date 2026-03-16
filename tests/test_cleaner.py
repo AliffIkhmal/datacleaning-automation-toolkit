@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 
-from hr_cleaning.cleaner import clean_hr_data
+from tools.hr_cleaning.cleaner import clean_hr_data
 
 
 class CleanerRulesTests(unittest.TestCase):

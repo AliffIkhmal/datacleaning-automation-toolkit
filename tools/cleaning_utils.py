@@ -1,0 +1,185 @@
+"""Shared cleaning utilities used across industry cleaners.
+
+These are generic operations that apply to any tabular dataset:
+- missing-placeholder normalisation
+- duplicate removal
+- negative value correction
+- date standardisation
+- IQR-based outlier capping
+- categorical title-casing
+"""
+
+from __future__ import annotations
+
+from typing import Any, Sequence
+
+import numpy as np
+import pandas as pd
+
+
+MISSING_PLACEHOLDERS = {"", "-", "--", "na", "n/a", "nan", "null", "none", "missing", "undefined"}
+
+
+def _normalize_text(value: Any) -> str:
+    if pd.isna(value):
+        return ""
+    return str(value).strip().lower()
+
+
+# ------------------------------------------------------------------
+# Missing placeholder normalisation
+# ------------------------------------------------------------------
+
+def normalize_missing_placeholders(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    for col in out.select_dtypes(include=["object", "category"]).columns:
+        out[col] = out[col].apply(
+            lambda x: np.nan if _normalize_text(x) in MISSING_PLACEHOLDERS else x
+        )
+    return out
+
+
+# ------------------------------------------------------------------
+# Duplicate removal
+# ------------------------------------------------------------------
+
+def remove_duplicates(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    before = len(df)
+    out = df.drop_duplicates().reset_index(drop=True)
+    return out, before - len(out)
+
+
+# ------------------------------------------------------------------
+# Negative value correction
+# ------------------------------------------------------------------
+
+def correct_negatives(df: pd.DataFrame, columns: Sequence[str]) -> tuple[pd.DataFrame, int]:
+    out = df.copy()
+    total_corrected = 0
+    for col in columns:
+        if col in out.columns and pd.api.types.is_numeric_dtype(out[col]):
+            mask = out[col] < 0
+            total_corrected += int(mask.sum())
+            out.loc[mask, col] = out.loc[mask, col].abs()
+    return out, total_corrected
+
+
+# ------------------------------------------------------------------
+# Date standardisation
+# ------------------------------------------------------------------
+
+def standardize_dates(df: pd.DataFrame, columns: Sequence[str]) -> tuple[pd.DataFrame, int]:
+    out = df.copy()
+    formatted_count = 0
+    for col in columns:
+        if col not in out.columns:
+            continue
+        series = out[col]
+        parsed = pd.to_datetime(series, errors="coerce", format="mixed", dayfirst=False)
+        unresolved = parsed.isna() & series.notna()
+        if unresolved.any():
+            parsed.loc[unresolved] = pd.to_datetime(
+                series[unresolved], errors="coerce", format="mixed", dayfirst=True,
+            )
+        valid_count = int(parsed.notna().sum())
+        if valid_count > 0:
+            formatted_count += valid_count
+            out[col] = parsed.dt.strftime("%Y-%m-%d")
+    return out, formatted_count
+
+
+# ------------------------------------------------------------------
+# Outlier detection & capping (IQR)
+# ------------------------------------------------------------------
+
+def cap_outliers_iqr(
+    df: pd.DataFrame,
+    columns: Sequence[str],
+    multiplier: float = 1.5,
+) -> tuple[pd.DataFrame, pd.DataFrame, int]:
+    """Cap outliers using IQR method. Returns (cleaned_df, outliers_df, count)."""
+    out = df.copy()
+    outlier_rows: list[pd.DataFrame] = []
+    total = 0
+
+    for col in columns:
+        if col not in out.columns or not pd.api.types.is_numeric_dtype(out[col]):
+            continue
+        series = pd.to_numeric(out[col], errors="coerce")
+        q1 = series.quantile(0.25)
+        q3 = series.quantile(0.75)
+        iqr = q3 - q1
+        lower = q1 - multiplier * iqr
+        upper = q3 + multiplier * iqr
+        mask = (series < lower) | (series > upper)
+        count = int(mask.sum())
+        if count > 0:
+            outlier_rows.append(df.loc[mask].copy())
+            total += count
+            out.loc[series < lower, col] = lower
+            out.loc[series > upper, col] = upper
+
+    if outlier_rows:
+        outliers_df = pd.concat(outlier_rows).drop_duplicates()
+    else:
+        outliers_df = pd.DataFrame()
+
+    return out, outliers_df, total
+
+
+# ------------------------------------------------------------------
+# Range validation
+# ------------------------------------------------------------------
+
+def validate_ranges(
+    df: pd.DataFrame,
+    range_rules: dict[str, tuple[float | None, float | None]],
+) -> tuple[pd.DataFrame, int]:
+    """Clip numeric columns to [min, max] ranges. None means unbounded."""
+    out = df.copy()
+    total_clipped = 0
+    for col, (lo, hi) in range_rules.items():
+        if col not in out.columns or not pd.api.types.is_numeric_dtype(out[col]):
+            continue
+        series = pd.to_numeric(out[col], errors="coerce")
+        before_clip = series.copy()
+        series = series.clip(lower=lo, upper=hi)
+        total_clipped += int((before_clip != series).sum())
+        out[col] = series
+    return out, total_clipped
+
+
+# ------------------------------------------------------------------
+# Categorical standardisation
+# ------------------------------------------------------------------
+
+def standardize_categoricals(df: pd.DataFrame, columns: Sequence[str]) -> pd.DataFrame:
+    out = df.copy()
+    for col in columns:
+        if col not in out.columns:
+            continue
+        out[col] = out[col].apply(
+            lambda x: x.strip().title() if isinstance(x, str) else x
+        )
+    return out
+
+
+# ------------------------------------------------------------------
+# Fill missing numeric with median, categorical with mode
+# ------------------------------------------------------------------
+
+def fill_missing(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    out = df.copy()
+    before = int(out.isna().sum().sum())
+
+    for col in out.select_dtypes(include=["number"]).columns:
+        median = out[col].median()
+        out[col] = out[col].fillna(median)
+
+    for col in out.select_dtypes(include=["object", "category"]).columns:
+        mode = out[col].mode(dropna=True)
+        if not mode.empty:
+            out[col] = out[col].fillna(mode.iloc[0])
+
+    after = int(out.isna().sum().sum())
+    return out, before - after

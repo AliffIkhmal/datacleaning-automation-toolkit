@@ -1,74 +1,123 @@
 from __future__ import annotations
 
-import streamlit as st
+from io import StringIO
+
 import pandas as pd
+import streamlit as st
 
-from hr_cleaning.cleaner import clean_hr_data
-from hr_cleaning.report import generate_cleaning_report
+from core.cleaner_router import get_cleaner, get_tool_options
+from core.schema_detector import detect_schema
 
 
-# Page setup and high-level app description.
-st.set_page_config(page_title="Automated HR Data Cleaning", page_icon="🧹", layout="wide")
-st.title("Automated HR Data Cleaning & Preprocessing System")
-st.caption("Upload HR CSV data, run preprocessing, review report, and download cleaned output.")
+PREVIEW_ROW_LIMIT = 100
 
-# File input and execution options.
-uploaded_file = st.file_uploader("Upload HR dataset (CSV)", type=["csv"])
-strict_mode = st.checkbox(
-    "Strict HR-only mode (require all core columns and <= 40% missing in each core column)",
-    value=False,
-)
 
-if uploaded_file is not None:
-    # Read uploaded CSV and stop early on parse errors.
-    try:
-        raw_df = pd.read_csv(uploaded_file)
-    except Exception as error:
-        st.error(f"Failed to read CSV file: {error}")
-        st.stop()
+@st.cache_data(show_spinner=False)
+def load_csv(uploaded_file: bytes) -> pd.DataFrame:
+    return pd.read_csv(StringIO(uploaded_file.decode("utf-8")))
 
-    st.subheader("Dataset Preview")
-    st.dataframe(raw_df.head(20), use_container_width=True)
 
-    st.subheader("Detected Data Types")
-    dtype_df = pd.DataFrame(
+def render_schema_summary(schema: dict[str, object]) -> None:
+    schema_df = pd.DataFrame(
         {
-            "Column": raw_df.columns,
-            "Detected_Type": [str(raw_df[col].dtype) for col in raw_df.columns],
+            "Schema Type": [
+                "Numeric Columns",
+                "Categorical Columns",
+                "Potential Date Columns",
+                "Identifier Columns",
+            ],
+            "Columns": [
+                ", ".join(schema["numeric_columns"]) or "None detected",
+                ", ".join(schema["categorical_columns"]) or "None detected",
+                ", ".join(schema["potential_date_columns"]) or "None detected",
+                ", ".join(schema["identifier_columns"]) or "None detected",
+            ],
         }
     )
-    st.dataframe(dtype_df, use_container_width=True)
+    st.dataframe(schema_df, use_container_width=True, hide_index=True)
 
-    # Trigger full cleaning pipeline and render outputs.
+
+def main() -> None:
+    st.set_page_config(page_title="Data Automation Toolkit", layout="wide")
+    st.title("Data Automation Toolkit")
+    st.caption(
+        "Select an industry cleaner, inspect detected schema, run automated cleaning, and download the output."
+    )
+
+    tool_options = get_tool_options()
+    selected_tool = st.selectbox("Select a tool", options=tool_options)
+    cleaner = get_cleaner(selected_tool)
+
+    st.info(cleaner.description)
+    if not cleaner.implemented:
+        st.warning(
+            "This cleaner is scaffolded for future expansion. Running it returns the original dataset with a placeholder report."
+        )
+
+    uploaded_file = st.file_uploader("Upload CSV dataset", type=["csv"])
+    if uploaded_file is None:
+        st.info("Upload a CSV file to begin.")
+        return
+
+    try:
+        raw_df = load_csv(uploaded_file.getvalue())
+    except Exception as error:
+        st.error(f"Failed to read CSV file: {error}")
+        return
+
+    if raw_df.empty:
+        st.error("The uploaded dataset is empty.")
+        return
+
+    schema = detect_schema(raw_df)
+
+    preview_column, schema_column = st.columns([1.8, 1.2])
+    with preview_column:
+        st.subheader(f"Dataset Preview (first {PREVIEW_ROW_LIMIT} rows)")
+        st.dataframe(raw_df.head(PREVIEW_ROW_LIMIT), use_container_width=True)
+
+    with schema_column:
+        st.subheader("Detected Schema")
+        if schema["detected_industry"]:
+            st.success(f"Detected industry: **{schema['detected_industry']}**")
+        render_schema_summary(schema)
+
+    st.subheader("Suggested Cleaning Rules")
+    suggested_rules_df = pd.DataFrame(schema["suggested_rules"])
+    if suggested_rules_df.empty:
+        st.info("No column-name rule suggestions were generated for this dataset.")
+    else:
+        st.dataframe(suggested_rules_df, use_container_width=True, hide_index=True)
+
     if st.button("Run Cleaning", type="primary"):
         try:
-            cleaned_df, stats, outliers_df = clean_hr_data(raw_df, strict_mode=strict_mode)
-            report_df = generate_cleaning_report(stats)
+            result = cleaner.run(raw_df)
         except Exception as error:
             st.error(f"Cleaning failed: {error}")
-            st.stop()
+            return
 
-        st.success("Data cleaning completed successfully.")
+        st.success("Cleaning completed.")
 
-        st.subheader("Cleaning Summary Report")
-        st.dataframe(report_df, use_container_width=True)
+        for message in result.messages:
+            st.info(message)
 
-        if not outliers_df.empty:
-            st.subheader("Detected Salary Outliers (IQR)")
-            st.dataframe(outliers_df, use_container_width=True)
-        else:
-            st.info("No salary outliers detected using IQR method.")
+        st.subheader("Cleaning Report")
+        st.dataframe(result.report_df, use_container_width=True, hide_index=True)
 
-        st.subheader("Cleaned Dataset Preview")
-        st.dataframe(cleaned_df.head(20), use_container_width=True)
+        if result.issues_df is not None and not result.issues_df.empty:
+            st.subheader("Detected Issues")
+            st.dataframe(result.issues_df, use_container_width=True)
 
-        csv_data = cleaned_df.to_csv(index=False).encode("utf-8")
+        st.subheader(f"Cleaned Dataset Preview (first {PREVIEW_ROW_LIMIT} rows)")
+        st.dataframe(result.cleaned_df.head(PREVIEW_ROW_LIMIT), use_container_width=True)
+
         st.download_button(
-            label="Download Cleaned CSV",
-            data=csv_data,
-            file_name="cleaned_hr_dataset.csv",
+            label="Download Cleaned Dataset",
+            data=result.cleaned_df.to_csv(index=False).encode("utf-8"),
+            file_name=result.output_filename,
             mime="text/csv",
         )
-else:
-    # Empty state before a file is uploaded.
-    st.info("Please upload a CSV file to begin.")
+
+
+if __name__ == "__main__":
+    main()

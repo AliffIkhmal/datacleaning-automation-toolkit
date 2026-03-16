@@ -1,87 +1,69 @@
-# Automated HR Data Cleaning & Preprocessing System
+# Data Automation Toolkit
 
-## Suggested Project Structure
+## Architecture
 
 ```text
 HRdata_cleaning/
 ├─ app.py
-├─ requirements.txt
-├─ README.md
-└─ hr_cleaning/
-   ├─ __init__.py
-   ├─ cleaner.py
-   └─ report.py
+├─ core/
+│  ├─ cleaner_router.py
+│  ├─ report_generator.py
+│  └─ schema_detector.py
+├─ tools/
+│  ├─ hr/
+│  │  └─ hr_cleaner.py
+│  ├─ sales/
+│  │  └─ sales_cleaner.py
+│  ├─ manufacturing/
+│  │  └─ manufacturing_cleaner.py
+│  ├─ logistics/
+│  │  └─ logistics_cleaner.py
+│  └─ ecommerce/
+│     └─ ecommerce_cleaner.py
+├─ hr_cleaning/
+│  ├─ cleaner.py
+│  └─ report.py
+├─ outputs/
+├─ data/
+└─ tests/
 ```
 
-## Basic Architecture Diagram (Explanation)
+## Flow
 
-```text
-[User]
-   │ Upload CSV / Click "Run Cleaning"
-   ▼
-[Streamlit UI: app.py]
-   │
-   ├─ Reads CSV with pandas
-   ├─ Shows preview + detected dtypes
-   ├─ Calls cleaning service
-   ▼
-[Data Cleaning Module: cleaner.py]
-   │
-   ├─ Remove duplicates
-   ├─ Fill missing values (median/mode)
-   ├─ Correct negatives (Age, Salary, Overtime_Hours)
-   ├─ Standardize categorical values
-   ├─ Convert Hire_Date to YYYY-MM-DD
-   └─ Detect Salary outliers (IQR)
-   │
-   ▼
-[Reporting Module: report.py]
-   └─ Builds summary metrics table
-   │
-   ▼
-[Streamlit UI: app.py]
-   ├─ Displays cleaning report
-   ├─ Displays outlier rows
-   └─ Provides cleaned CSV download
-```
+1. User selects an industry cleaner in the Streamlit UI.
+2. User uploads a CSV dataset.
+3. The schema detector classifies numeric, categorical, date-like, and identifier columns.
+4. Column-name pattern matching generates suggested cleaning rules.
+5. The cleaner router dispatches the dataset to the selected cleaner.
+6. The cleaner returns a cleaned dataset and a cleaning report.
+7. The UI renders the preview, report, and download action.
+
+## Existing HR Integration
+
+The HR tool is implemented as an adapter around the existing HR pipeline:
+
+- `tools/hr/hr_cleaner.py` calls `hr_cleaning.cleaner.clean_hr_data`
+- `hr_cleaning/report.py` still builds the HR report
+- This keeps the current HR cleaning behavior intact while exposing it through the modular toolkit
 
 ## Run Locally
 
 1. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
-2. Start app:
+
+2. Start the Streamlit app:
+
    ```bash
    streamlit run app.py
    ```
 
-## Handling New Datasets With Different Column Names
+## Current Status
 
-The cleaner supports canonical HR fields with alias matching (for example `Salary`, `Age`, `Performance_Rating`).
-
-If a new dataset uses different headers, developers can pass a custom alias map to `clean_hr_data` instead of changing the cleaning rules:
-
-```python
-from hr_cleaning.cleaner import clean_hr_data
-
-column_aliases = {
-   "Name": {"Employee Full Name"},
-   "Gender": {"Sex"},
-   "Salary": {"Monthly Income"},
-   "Age": {"Employee Age"},
-   "Performance_Rating": {"Perf Score"},
-   "Overtime_Hours": {"OT"},
-}
-
-cleaned_df, stats, outliers_df = clean_hr_data(
-   raw_df,
-   strict_mode=True,
-   column_aliases=column_aliases,
-)
-```
-
-Notes:
-- Aliases are case-insensitive and punctuation-insensitive.
-- Runtime aliases are merged with built-in defaults.
-- You only add new names in the alias map; cleaning logic stays unchanged.
+- HR Data Cleaner: implemented and integrated
+- Sales Data Cleaner: scaffolded placeholder
+- Manufacturing Data Cleaner: scaffolded placeholder
+- Logistics Data Cleaner: scaffolded placeholder
+- E-commerce Data Cleaner: scaffolded placeholder

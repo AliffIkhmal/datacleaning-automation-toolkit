@@ -1,0 +1,201 @@
+Order_ID,Product,Category,Price,Quantity,Order_Date,Customer_Rating
+ECO113,TV,Home,-250.59,9.0,2024-06-29,1.0
+ECO16,Tablet,Electronics,-275.43,6.0,19 May 2021,7.0
+ECO98,Tablet,Electronics,348.31,-1.0,2024/12/03,2.0
+ECO119,Tablet,home,,-4.0,2024-12-11,3.0
+ECO50,TV,Electronics,522.48,-5.0,20 Feb 2018,7.0
+ECO131,Blender,Fashion,58.7,,2022/09/21,7.0
+ECO80,Camera,Home,498.58,1.0,2023.10.03,
+ECO80,Camera,Fashion,,-2.0,04-07-2021,1.0
+ECO144,TV,Home,416.56,,09/11/2021,2.0
+ECO122,Tablet,home,514.24,,18 Sep 2021,5.0
+ECO117,TV,Home,-186.75,6.0,2020-06-17,7.0
+ECO85,Tablet,electronics,,-2.0,28/06/2022,
+ECO30,Shoes,Fashion,791.95,,09/12/2022,7.0
+ECO73,Shoes,electronics,470.62,1.0,2020.12.09,2.0
+ECO68,TV,Electronics,275.15,4.0,2019/07/17,7.0
+ECO95,Blender,electronics,630.99,5.0,29 Nov 2023,4.0
+ECO137,Tablet,Fashion,703.32,3.0,26 Jul 2021,4.0
+ECO138,Blender,electronics,781.7,10.0,04/09/2021,1.0
+ECO54,TV,Home,505.42,-5.0,2024-11-23,2.0
+ECO133,Tablet,electronics,,-3.0,2021.08.11,3.0
+ECO103,Camera,Electronics,-147.57,,28/04/2020,2.0
+ECO147,Shoes,Fashion,364.4,-4.0,08 Nov 2020,1.0
+ECO150,TV,Home,-29.79,9.0,30 Sep 2023,3.0
+ECO70,Tablet,Electronics,-142.93,-4.0,2020/01/06,2.0
+ECO140,TV,Fashion,216.17,,2020-07-21,1.0
+ECO85,Blender,Fashion,61.72,,29/01/2021,7.0
+ECO77,Blender,Fashion,,9.0,2022/07/13,
+ECO59,Shoes,electronics,-198.32,-2.0,28/04/2023,5.0
+ECO81,Shoes,Home,-168.02,8.0,07/09/2022,4.0
+ECO79,TV,Home,-169.74,3.0,12-23-2021,2.0
+ECO6,Camera,Electronics,-207.3,-3.0,24/07/2019,3.0
+ECO53,Tablet,Electronics,,-4.0,2023/12/30,2.0
+ECO27,Camera,electronics,-102.01,5.0,2018.05.12,5.0
+ECO60,Blender,home,393.45,7.0,2018/10/14,1.0
+ECO29,Shoes,home,-8.26,7.0,2022/09/10,7.0
+ECO111,Tablet,electronics,59.67,-2.0,08 Oct 2024,3.0
+ECO2,Shoes,Home,,8.0,2018/09/20,5.0
+ECO148,TV,Electronics,,-4.0,2021.03.25,4.0
+ECO107,Shoes,electronics,-253.58,7.0,2024.12.05,4.0
+ECO12,Shoes,electronics,368.97,-1.0,2021.01.26,5.0
+ECO142,TV,Fashion,,-4.0,2018-11-10,5.0
+ECO130,TV,Home,-101.17,3.0,2018-04-20,7.0
+ECO102,TV,Electronics,-226.17,6.0,2020-10-23,7.0
+ECO18,TV,home,,-4.0,2020.09.19,4.0
+ECO26,Shoes,Fashion,116.5,,24 May 2019,7.0
+ECO92,Shoes,electronics,315.73,-2.0,2018.05.22,5.0
+ECO79,Tablet,Electronics,,-1.0,2024-09-16,1.0
+ECO24,TV,Home,619.07,6.0,2018-04-25,3.0
+ECO43,Shoes,Electronics,657.32,,30 Aug 2022,1.0
+ECO139,Tablet,Home,,4.0,10/05/2019,2.0
+ECO100,Shoes,Home,89.18,7.0,2020-06-20,7.0
+ECO106,Blender,home,-196.73,1.0,2023-08-09,7.0
+ECO84,Tablet,electronics,,3.0,22/09/2021,7.0
+ECO5,Camera,home,,-1.0,2023/01/13,5.0
+ECO32,Blender,electronics,,1.0,22/10/2022,5.0
+ECO97,Shoes,Electronics,-45.58,5.0,2020.09.02,5.0
+ECO11,Camera,Home,-135.9,-3.0,2021-03-27,2.0
+ECO64,Shoes,home,678.31,4.0,12 Apr 2022,3.0
+ECO14,Shoes,electronics,150.92,8.0,2019-05-30,2.0
+ECO110,Tablet,Fashion,476.14,4.0,2019.11.04,2.0
+ECO115,Shoes,Fashion,199.72,,2023-05-25,3.0
+ECO111,Shoes,Home,-54.49,,2018/03/23,4.0
+ECO142,Shoes,Fashion,-228.86,10.0,2022/04/08,3.0
+ECO35,Tablet,electronics,,-1.0,26/09/2019,1.0
+ECO107,Tablet,Fashion,,-4.0,2022/04/23,3.0
+ECO145,Shoes,electronics,-178.55,-1.0,11-23-2022,
+ECO15,Tablet,Home,,,07/10/2020,4.0
+ECO117,Shoes,Fashion,,-2.0,10 Oct 2020,5.0
+ECO99,Tablet,home,761.66,,26 Nov 2018,2.0
+ECO137,Tablet,home,-53.92,,2021.06.15,4.0
+ECO37,Blender,electronics,603.21,-5.0,2022.06.19,3.0
+ECO107,Camera,Home,-54.68,1.0,2021.03.27,4.0
+ECO47,Camera,Electronics,,-2.0,20 Jan 2023,
+ECO105,Tablet,home,,-2.0,2019.03.24,2.0
+ECO8,Camera,electronics,68.45,-1.0,2023/05/12,7.0
+ECO25,Shoes,home,-7.8,1.0,2018/01/30,5.0
+ECO110,Blender,Fashion,-288.81,-4.0,11-06-2021,
+ECO92,Blender,Electronics,-111.56,7.0,2018/01/13,
+ECO136,Blender,electronics,560.16,1.0,2022/02/18,5.0
+ECO83,TV,Fashion,,7.0,2018.07.07,3.0
+ECO90,Tablet,Home,-73.9,7.0,2019.02.16,4.0
+ECO130,TV,electronics,238.62,,2023-08-02,3.0
+ECO124,Camera,electronics,-298.91,3.0,23/09/2020,2.0
+ECO8,Shoes,Fashion,603.84,,04-20-2022,2.0
+ECO126,TV,Fashion,,,05 Jul 2020,
+ECO144,Tablet,electronics,-24.08,,07-04-2020,1.0
+ECO30,Camera,Fashion,-37.86,,06-06-2019,4.0
+ECO100,Tablet,Fashion,463.65,10.0,2022.02.04,
+ECO3,Camera,Home,,-1.0,18/07/2021,
+ECO73,Shoes,Electronics,-251.98,,09-19-2024,3.0
+ECO56,Tablet,Fashion,-208.14,,2022-03-23,
+ECO125,Tablet,Fashion,269.85,4.0,2019-10-15,5.0
+ECO19,Camera,Fashion,-129.62,-4.0,2021.03.02,2.0
+ECO14,Blender,Home,562.38,,02 Nov 2019,2.0
+ECO51,TV,Fashion,356.3,,2024-06-15,7.0
+ECO25,Blender,Home,-258.24,7.0,2020-01-06,1.0
+ECO104,Shoes,Electronics,,,02/05/2019,4.0
+ECO98,Blender,Home,393.46,-1.0,2022-02-13,1.0
+ECO147,Camera,Home,,9.0,2021.01.26,7.0
+ECO147,Shoes,Electronics,-179.9,-4.0,2021-08-25,7.0
+ECO143,Camera,home,727.56,-1.0,2023-06-25,5.0
+ECO31,Shoes,home,,,2020-01-08,5.0
+ECO42,TV,home,360.55,3.0,2020-11-17,1.0
+ECO1,Shoes,Fashion,-154.31,-2.0,09 Jul 2018,
+ECO81,Camera,Fashion,238.25,,18 Oct 2024,5.0
+ECO37,Blender,electronics,171.82,4.0,04 Jul 2019,5.0
+ECO141,Blender,Fashion,176.75,10.0,2022.04.13,2.0
+ECO53,TV,Fashion,-29.56,,2020.02.29,3.0
+ECO40,Blender,Home,,-2.0,2022-04-02,5.0
+ECO17,Blender,Electronics,,-5.0,01-26-2022,
+ECO97,Shoes,Home,222.24,5.0,2019-03-07,2.0
+ECO90,Camera,Fashion,,,03-09-2024,5.0
+ECO137,Camera,home,-19.15,-2.0,2022/07/08,5.0
+ECO97,Camera,Fashion,,3.0,2018.08.05,7.0
+ECO118,Shoes,Home,779.73,,2021/12/20,5.0
+ECO23,Blender,Home,,,2021-07-04,7.0
+ECO22,Blender,home,68.18,3.0,2023-07-12,4.0
+ECO137,TV,Home,543.24,,26 Feb 2018,2.0
+ECO89,Shoes,home,,,2024-10-31,5.0
+ECO94,Shoes,home,,4.0,2021-12-18,4.0
+ECO31,Blender,Fashion,398.93,,06-02-2023,3.0
+ECO132,TV,Home,,-2.0,2024/12/05,1.0
+ECO2,Blender,electronics,-186.58,5.0,07-05-2022,1.0
+ECO106,TV,Home,85.56,9.0,29/01/2018,
+ECO110,Shoes,home,-71.7,-3.0,2021-01-08,4.0
+ECO92,Shoes,Electronics,526.74,6.0,02-16-2020,1.0
+ECO51,Tablet,Fashion,-129.21,,2019/05/02,4.0
+ECO129,Tablet,electronics,,-3.0,2019-03-26,
+ECO88,Tablet,home,,1.0,2018/02/02,4.0
+ECO131,Shoes,electronics,-148.35,4.0,2021-02-25,
+ECO27,Camera,home,,-2.0,13/01/2020,
+ECO10,Blender,electronics,475.0,-2.0,2019/08/22,1.0
+ECO79,Shoes,electronics,495.09,,2021/10/08,4.0
+ECO94,Blender,Fashion,53.77,-1.0,09/09/2022,3.0
+ECO74,Tablet,Fashion,716.61,1.0,2024-10-20,4.0
+ECO25,TV,home,-284.76,6.0,06-18-2019,3.0
+ECO61,Blender,electronics,,-5.0,2024/07/21,1.0
+ECO49,Shoes,Home,,10.0,2019-02-09,5.0
+ECO40,TV,electronics,-93.94,,2020/02/25,5.0
+ECO31,Tablet,Electronics,,-3.0,2023/06/01,5.0
+ECO34,Blender,Electronics,745.41,-5.0,2024-05-08,
+ECO20,Shoes,Home,-61.11,,2023/09/18,5.0
+ECO41,Camera,electronics,-123.25,4.0,2024.08.22,1.0
+ECO78,Shoes,Fashion,-238.24,-5.0,04 Jan 2021,1.0
+ECO38,Blender,electronics,141.03,,2021-01-12,7.0
+ECO89,Camera,Fashion,784.12,9.0,2021-08-22,7.0
+ECO84,TV,Electronics,707.77,-5.0,27/12/2021,7.0
+ECO98,Blender,home,772.36,9.0,06/03/2024,
+ECO115,Shoes,Home,356.54,10.0,18/02/2022,4.0
+ECO126,Shoes,Fashion,79.48,,03-28-2018,2.0
+ECO37,TV,Home,,10.0,2020/10/01,7.0
+ECO26,Tablet,Home,,,2018-03-26,
+ECO69,Shoes,home,15.77,3.0,2018-02-25,
+ECO123,Camera,Home,-222.16,2.0,10-31-2019,3.0
+ECO6,TV,Electronics,,5.0,02-09-2024,1.0
+ECO59,Tablet,Home,411.68,1.0,08-27-2019,7.0
+ECO44,TV,electronics,,-1.0,02-21-2019,3.0
+ECO39,Shoes,Home,-103.45,,12-13-2023,5.0
+ECO90,TV,Fashion,,-5.0,2023.08.07,3.0
+ECO38,Blender,electronics,,2.0,2022/05/19,7.0
+ECO72,Shoes,Electronics,638.5,-5.0,16/08/2021,2.0
+ECO106,Camera,Fashion,-109.02,,2019.07.21,2.0
+ECO138,Shoes,Home,,,09 Dec 2018,7.0
+ECO93,TV,electronics,,4.0,03-12-2018,5.0
+ECO36,Blender,Home,381.77,-3.0,14 Aug 2019,4.0
+ECO37,Tablet,Electronics,197.79,,10-06-2022,1.0
+ECO8,Shoes,Fashion,562.61,8.0,2019-08-02,2.0
+ECO36,Camera,Fashion,-172.91,-2.0,2023/04/10,7.0
+ECO40,TV,Electronics,,1.0,10/10/2024,5.0
+ECO67,Camera,home,-121.94,,2021.06.07,2.0
+ECO55,Tablet,home,341.82,9.0,18/08/2018,4.0
+ECO120,Tablet,Fashion,,,2022/07/18,2.0
+ECO27,TV,Fashion,-114.59,4.0,10-06-2024,1.0
+ECO3,Blender,electronics,195.43,,09/03/2024,7.0
+ECO145,Tablet,Electronics,743.72,10.0,07-16-2018,1.0
+ECO50,Blender,Home,-7.5,,28/12/2021,7.0
+ECO39,TV,home,,,2022/04/15,5.0
+ECO24,Shoes,electronics,695.71,3.0,2019.07.31,2.0
+ECO115,Shoes,Fashion,,-5.0,04-06-2021,5.0
+ECO20,Shoes,home,,7.0,2023-07-31,
+ECO25,Tablet,Fashion,-231.06,-1.0,11-27-2019,2.0
+ECO118,Blender,Home,-175.07,2.0,2020/11/14,7.0
+ECO74,Tablet,Home,,-1.0,2024.12.13,2.0
+ECO106,Camera,Home,,6.0,2020.12.12,1.0
+ECO40,TV,Fashion,,4.0,20/03/2022,5.0
+ECO120,Tablet,home,-26.53,-1.0,2023-03-20,1.0
+ECO85,TV,Fashion,-36.96,-2.0,03 Nov 2021,4.0
+ECO140,Shoes,Home,174.04,5.0,2019.08.20,2.0
+ECO111,Tablet,electronics,,-1.0,10/08/2018,
+ECO46,TV,electronics,-228.79,,10-11-2018,4.0
+ECO67,Shoes,Electronics,-262.76,7.0,2019/01/14,3.0
+ECO122,Camera,electronics,770.88,-4.0,11-25-2022,7.0
+ECO149,Camera,electronics,,10.0,2021.08.19,
+ECO118,Shoes,Home,,6.0,2021-07-20,
+ECO116,Camera,Electronics,,1.0,30/05/2018,7.0
+ECO56,Blender,electronics,,-5.0,2020.02.22,5.0
+ECO129,TV,Home,-114.23,-3.0,2023/02/11,4.0
+ECO46,Tablet,Home,-249.31,9.0,09/03/2022,5.0
+ECO73,Camera,Electronics,-165.12,,2018-12-25,1.0
+ECO140,TV,Home,-186.8,,24 Aug 2023,
