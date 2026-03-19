@@ -91,7 +91,8 @@ class SalesCleaner(BaseCleaner):
             derived_count = int(can_calc.sum())
             if derived_count:
                 working.loc[can_calc, rev_col] = (
-                    working.loc[can_calc, price_col] * working.loc[can_calc, qty_col]
+                    working.loc[can_calc, price_col].astype("float64")
+                    * working.loc[can_calc, qty_col].astype("float64")
                 ).abs()
                 messages.append(f"{derived_count} revenue value(s) calculated from price × quantity.")
 

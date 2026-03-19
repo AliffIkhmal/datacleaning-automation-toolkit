@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from core.industry_schemas import ECOMMERCE_SCHEMA
@@ -98,10 +99,11 @@ class EcommerceCleaner(BaseCleaner):
             # If Order_Value column doesn't exist yet, create it
             if val_col is None:
                 val_col = "Order_Value"
-                working[val_col] = pd.NA
+                working[val_col] = np.nan  # float64 column so round_numeric_columns picks it up
             if derived_count:
                 working.loc[can_calc, val_col] = (
-                    working.loc[can_calc, price_col] * working.loc[can_calc, qty_col]
+                    working.loc[can_calc, price_col].astype("float64")
+                    * working.loc[can_calc, qty_col].astype("float64")
                 ).abs()
                 messages.append(f"{derived_count} order value(s) calculated from price × quantity.")
 
